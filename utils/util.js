@@ -6,8 +6,8 @@
 exports.checkObjectEmptyOrNot = async function (insertData) {
 
     try {
-        var users = await Object.entries(insertData).length === 0 && insertData.constructor === Object
-        return users;
+        var response = await Object.entries(insertData).length === 0 && insertData.constructor === Object
+        return response;
     } catch (e) {
         // Log Errors
         throw Error('Error on Given data')
@@ -17,10 +17,10 @@ exports.checkObjectEmptyOrNot = async function (insertData) {
 exports.checkStringEmptyOrNot = async function (insertData) {
 
     try {
-        var users = await (insertData == null ||
+        var response = await (insertData == null ||
             insertData == undefined ||
             insertData.length == 0)
-        return users;
+        return response;
     } catch (e) {
         // Log Errors
         throw Error('Error on Given data')
@@ -28,9 +28,26 @@ exports.checkStringEmptyOrNot = async function (insertData) {
 }
 
 
-exports.validationEmailID =  function (insertData) {
+exports.validationEmailID =  async function (insertData) {
 
-
-        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(insertData)
-
+    try {
+        var response = await (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(insertData))
+        return response;
+    } catch (e) {
+        // Log Errors
+        throw Error('Error on Given data')
+    }
+    
 };
+
+
+exports.validationStringOrNumber = async function (insertData) {
+    try {
+        var response = await (/^[a-zA-Z]+$/.test(insertData))
+        return response;
+    } catch (e) {
+        // Log Errors
+        throw Error('Error on Given data')
+    }
+};
+

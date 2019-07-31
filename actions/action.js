@@ -26,11 +26,40 @@ exports.registerUser = async function (req, res) {
         return res.status(400).json(errorObject);
     }
 
+    var firstNameValidationEmpty = await Util.checkStringEmptyOrNot(insertData.firstName);
+    if (firstNameValidationEmpty){
+        errorObject['message'] = "First Name Should not be Empty";
+        return res.status(400).json(errorObject);
+    }
+
+    var firstNameValidationString = await Util.validationStringOrNumber(insertData.firstName);
+    if (!firstNameValidationString){
+        errorObject['message'] = "First Name Should not be Number";
+        return res.status(400).json(errorObject);
+    }
+
+    var lastNameValidationEmpty = await Util.checkStringEmptyOrNot(insertData.lastName);
+    if (lastNameValidationEmpty){
+        errorObject['message'] = "Last Name Should not be Empty";
+        return res.status(400).json(errorObject);
+    }
+
+
+    var lastNameValidationString  = await Util.validationStringOrNumber(insertData.lastName);
+    if (!lastNameValidationString){
+        errorObject['message'] = "Last Name Should not be Number";
+        return res.status(400).json(errorObject);
+    }
+
+
     var passwordValidationString = await Util.checkStringEmptyOrNot(insertData.password);
     if (passwordValidationString) {
         errorObject['message'] = "Password Should not be empty";
         return res.status(400).json(errorObject);
     }
+
+
+
 
     var passwordValidationSyntax = /(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{6,}/;
     var passwordValidationLength = passwordValidationSyntax.test(insertData.password);
