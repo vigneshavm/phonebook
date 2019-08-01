@@ -31,3 +31,4 @@ exports.findData = async function (insertData, table) {
      })
 }
 
++

@@ -224,7 +224,9 @@ exports.createContact = async function (req, res) {
 
         var insertObject ={
             loggedInUser  : "",
-            contactName : requestObject.firstName + " " + requestObject.lastName,
+            fullName : requestObject.firstName + " " + requestObject.lastName,
+            firstName : requestObject.firstName,
+            lastName : requestObject.lastName,
             phoneNumber : requestObject.phoneNumber
         };
 
