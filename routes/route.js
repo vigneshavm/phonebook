@@ -6,4 +6,7 @@ module.exports = (app) => {
 
     app.post('/registerUser', actionInstance.registerUser);
 
+    app.post('/login', actionInstance.loginUser);
+
+
 }

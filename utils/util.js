@@ -28,7 +28,7 @@ exports.checkStringEmptyOrNot = async function (insertData) {
 }
 
 
-exports.validationEmailID =  async function (insertData) {
+exports.validationMailID =  async function (insertData) {
 
     try {
         var response = await (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(insertData))

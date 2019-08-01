@@ -18,3 +18,16 @@ exports.insertData = async function (insertData, table) {
     }
 }
 
+
+exports.findData = async function (insertData, table) {
+
+     return new Promise((resolve, reject) => {
+     var data=db[table].find(insertData,{_id:0}).toArray((err, data) => {
+         if(data)
+             resolve(data)
+         else
+             resolve('Error on Data Finding')
+     })
+     })
+}
+

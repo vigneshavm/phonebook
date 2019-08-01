@@ -7,52 +7,57 @@ const Util = require('../utils/util.js');
 exports.registerUser = async function (req, res) {
 
     var errorObject = {
-        status: 400
+        status: 400,
+        message :"Enter MailID"
     };
 
-    var insertData = req.body ? req.body : null;
+    var requestObject = req.body ? req.body : null;
 
 
-    var inputObjectValidation = await Util.checkObjectEmptyOrNot(insertData);
+    var inputObjectValidation = await Util.checkObjectEmptyOrNot(requestObject);
     if (inputObjectValidation)
         {
             errorObject['message'] = "User Registration Object should not be Empty";
             return res.status(400).json(errorObject);
         }
 
-    var emailValidation = await Util.validationEmailID(insertData.emailID);
-    if (!emailValidation){
+
+
+
+
+    var mailValidation = await Util.validationMailID(requestObject.mailId);
+    if (!mailValidation){
         errorObject['message'] = "Please Enter proper mailID";
         return res.status(400).json(errorObject);
     }
 
-    var firstNameValidationEmpty = await Util.checkStringEmptyOrNot(insertData.firstName);
+    var firstNameValidationEmpty = await Util.checkStringEmptyOrNot(requestObject.firstName);
     if (firstNameValidationEmpty){
         errorObject['message'] = "First Name Should not be Empty";
         return res.status(400).json(errorObject);
     }
 
-    var firstNameValidationString = await Util.validationStringOrNumber(insertData.firstName);
+    var firstNameValidationString = await Util.validationStringOrNumber(requestObject.firstName);
     if (!firstNameValidationString){
         errorObject['message'] = "First Name Should not be Number";
         return res.status(400).json(errorObject);
     }
 
-    var lastNameValidationEmpty = await Util.checkStringEmptyOrNot(insertData.lastName);
+    var lastNameValidationEmpty = await Util.checkStringEmptyOrNot(requestObject.lastName);
     if (lastNameValidationEmpty){
         errorObject['message'] = "Last Name Should not be Empty";
         return res.status(400).json(errorObject);
     }
 
 
-    var lastNameValidationString  = await Util.validationStringOrNumber(insertData.lastName);
+    var lastNameValidationString  = await Util.validationStringOrNumber(requestObject.lastName);
     if (!lastNameValidationString){
         errorObject['message'] = "Last Name Should not be Number";
         return res.status(400).json(errorObject);
     }
 
 
-    var passwordValidationString = await Util.checkStringEmptyOrNot(insertData.password);
+    var passwordValidationString = await Util.checkStringEmptyOrNot(requestObject.password);
     if (passwordValidationString) {
         errorObject['message'] = "Password Should not be empty";
         return res.status(400).json(errorObject);
@@ -62,7 +67,7 @@ exports.registerUser = async function (req, res) {
 
 
     var passwordValidationSyntax = /(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{6,}/;
-    var passwordValidationLength = passwordValidationSyntax.test(insertData.password);
+    var passwordValidationLength = passwordValidationSyntax.test(requestObject.password);
     if (!passwordValidationLength) {
         errorObject['message'] = "Password at least one number, one lowercase and one uppercase letter ,at least six characters";
         return res.status(400).json(errorObject);
@@ -71,10 +76,83 @@ exports.registerUser = async function (req, res) {
     const tableName = 'user';
 
     try {
-        var users = await Service.insertData(insertData, tableName);
+        
+        var validationMailIdAlreadyExistObject ={
+            mailId : requestObject.mailId
+        };
+        
+        var responseObjectData = await Service.findData(validationMailIdAlreadyExistObject, tableName);
+        if(responseObjectData.length)
+            return res.status(200).json({status: 200,  message: "MailID Already Registered"});
+            
+        var users = await Service.insertData(requestObject, tableName);
         return res.status(200).json({status: 200, data: users, message: "User Succesfully Registered"});
     } catch (e) {
         errorObject['message'] = e.message;
         return res.status(400).json(errorObject);
     }
 }
+
+
+exports.loginUser = async function (req, res) {
+
+    var errorObject = {
+        status: 400
+    };
+
+    var requestObject = req.body ? req.body : null;
+
+
+    var inputObjectValidation = await Util.checkObjectEmptyOrNot(requestObject);
+    if (inputObjectValidation)
+    {
+        errorObject['message'] = "User Login Object should not be Empty";
+        return res.status(400).json(errorObject);
+    }
+
+    var mailValidation = await Util.validationMailID(requestObject.mailId);
+    if (!mailValidation){
+        errorObject['message'] = "Please Enter proper mailID";
+        return res.status(400).json(errorObject);
+    }
+
+    var firstNameValidationEmpty = await Util.checkStringEmptyOrNot(requestObject.password);
+    if (firstNameValidationEmpty){
+        errorObject['message'] = "Password Should not be Empty";
+        return res.status(400).json(errorObject);
+    }
+
+    
+    var passwordValidationSyntax = /(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{6,}/;
+    var passwordValidationLength = passwordValidationSyntax.test(requestObject.password);
+    if (!passwordValidationLength) {
+        errorObject['message'] = "Password at least one number, one lowercase and one uppercase letter ,at least six characters";
+        return res.status(400).json(errorObject);
+    }
+
+    const tableName = 'user';
+
+    try {
+
+        var findUser = {
+            mailId :requestObject.mailId
+        };
+        var users = await Service.findData(findUser, tableName);
+        if(users.length){
+            findUser['password'] = requestObject.password
+            var usersVerification = await Service.findData(requestObject, tableName);
+            if(usersVerification.length)
+                return res.status(200).json({status: 200, data: users, message: "User Login Succesfully "});
+            else
+                return res.status(200).json({status: 200, message: "MailID and Password MisMatch"});
+        }
+        else
+            return res.status(200).json({status: 200,  message: "MailID not registered"});
+
+
+    } catch (e) {
+        errorObject['message'] = e.message;
+        return res.status(400).json(errorObject);
+    }
+}
+
