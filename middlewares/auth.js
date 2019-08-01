@@ -10,17 +10,30 @@ const Service = require('../services/service.js');
 
 exports.isAuthorized = async function (req, res, next) {
 
-
+    var errorObject = {
+        status: 400
+    };
     if (req.params.authToken || req.query.authToken || req.body.authToken || req.header('authToken')) {
 
-        var errorObject = {
-            status: 400
+
+        var criteria={
+            condition : {authToken: req.header('authToken') || req.params.authToken || req.body.authToken || req.query.authToken},
+            sortOrder : {_id:1}
         };
 
-        var getToken = await Service.findOneData({authToken: req.header('authToken') || req.params.authToken || req.body.authToken || req.query.authToken},"tokenAuth");
-        if (getToken) {
+        criteria['limit'] =  0;
+        criteria['skip'] = 0;
 
-            var verifyToken = await jwt.verify(getToken.authToken,getToken.tokenSecret);
+
+        var getToken = await Service.findData(criteria,"tokenAuth");
+        console.log("getToken", typeof getToken);
+        if ( getToken.length) {
+
+            console.log("getToken", getToken);
+
+            var tokenObject = getToken[0];
+
+            var verifyToken = await jwt.verify(tokenObject.authToken,tokenObject.tokenSecret);
             console.log("verifyToken", verifyToken);
             errorObject['message'] = verifyToken;
 
@@ -33,8 +46,7 @@ exports.isAuthorized = async function (req, res, next) {
     }
 
     else {
-        logger.error('AuthorizationToken Missing', 'AuthorizationMiddleware', 5)
-        let apiResponse = responseLib.generate(true, 'AuthorizationToken Is Missing In Request', 400, null)
-        res.send(apiResponse)
+        errorObject['message'] = 'AuthorizationToken Is Missing In Request';
+        return res.status(400).json(errorObject);
     }
 }

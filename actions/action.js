@@ -29,9 +29,6 @@ exports.registerUser = async function (req, res) {
         }
 
 
-
-
-
     var mailValidation = await Util.validationMailID(requestObject.mailId);
     if (!mailValidation){
         errorObject['message'] = "Please Enter proper mailID";
@@ -83,12 +80,19 @@ exports.registerUser = async function (req, res) {
     const tableName = 'user';
 
     try {
-        
-        var validationMailIdAlreadyExistObject ={
-            mailId : requestObject.mailId
+
+
+
+        var criteria={
+            condition : {mailId : requestObject.mailId},
+            sortOrder : {_id:1}
         };
-        
-        var responseObjectData = await Service.findData(validationMailIdAlreadyExistObject, tableName);
+        criteria['limit'] = requestObject.limit ?requestObject.limit : 0;
+        criteria['skip'] = requestObject.page ? Number(( requestObject.page==0 ?requestObject.page=1:1 - 1) * Number(requestObject.limit ?requestObject.limit :10)) :0;
+
+
+
+        var responseObjectData = await Service.findData(criteria, tableName);
         if(responseObjectData.length)
             return res.status(200).json({status: 200,  message: "MailID Already Registered"});
 
@@ -154,25 +158,38 @@ exports.loginUser = async function (req, res) {
 
     try {
 
-        var findUser = {
-            mailId :requestObject.mailId
+
+
+        var criteria={
+            condition : {mailId : requestObject.mailId},
+            sortOrder : {_id:1}
         };
-        var users = await Service.findData(findUser, tableName);
+
+        criteria['limit'] = requestObject.limit ?requestObject.limit : 0;
+        criteria['skip'] = requestObject.page ? Number(( requestObject.page==0 ?requestObject.page=1:1 - 1) * Number(requestObject.limit ?requestObject.limit :10)) :0;
+
+
+
+
+
+        var users = await Service.findData(criteria, tableName);
         if(users.length){
 
             var hashPassword  = await bcrypt.compare(requestObject.password, users[0].password)
 
             var generateToken   = await Auth.generateToken(users[0]);
 
-            console.log("generateToken", generateToken);
 
-var tokenObject ={
+        var tokenObject ={
             userId: users[0].userId,
                 authToken: generateToken.token,
                 tokenSecret: generateToken.tokenSecret,
                 tokenGenerationTime: moment().format()
 
-}
+        }
+
+        delete users[0].password
+        delete users[0]._id
 
             var insertToken   = await Service.insertData(tokenObject,'tokenAuth')
 
@@ -255,20 +272,40 @@ exports.createContact = async function (req, res) {
 
     try {
 
-        var validationPhoneNumberAlreadyExistObject ={
-            phoneNumber : requestObject.phoneNumber
+
+        var criteria={
+            condition : {phoneNumber : requestObject.phoneNumber},
+            sortOrder : {_id:1}
         };
 
-        var responseObjectData = await Service.findData(validationPhoneNumberAlreadyExistObject, tableName);
+        criteria['limit'] = requestObject.limit ?requestObject.limit : 0;
+        criteria['skip'] = requestObject.page ? Number(( requestObject.page==0 ?requestObject.page=1:1 - 1) * Number(requestObject.limit ?requestObject.limit :10)) :0;
+
+
+
+
+        var responseObjectData = await Service.findData(criteria, tableName);
         if(responseObjectData.length)
             return res.status(200).json({status: 200,  message: "phoneNumber Already In contacts List"});
 
 
-        var userNameObject ={
-            firstName : requestObject.firstName,
-            lastName : requestObject.lastName
+
+
+        var userCriteria={
+            condition : {
+                firstName : requestObject.firstName,
+                lastName : requestObject.lastName
+            },
+            sortOrder : {_id:1}
         };
-        var userNameValidation = await Service.findData(userNameObject, tableName);
+
+        userCriteria['limit'] = requestObject.limit ?requestObject.limit : 0;
+        userCriteria['skip'] = requestObject.page ? Number(( requestObject.page==0 ?requestObject.page=1:1 - 1) * Number(requestObject.limit ?requestObject.limit :10)) :0;
+
+
+
+
+        var userNameValidation = await Service.findData(userCriteria, tableName);
         if(userNameValidation.length)
             return res.status(200).json({status: 200,  message: "User Name Already Exist"});
 
@@ -358,12 +395,21 @@ exports.updateContact = async function (req, res) {
 
     try {
 
-        var validationUser ={
-            ID : requestObject.ID,
-            loggedInUser : sessionUser.userId
+
+
+        var criteria={
+            condition : {
+                ID : requestObject.ID,
+                loggedInUser : sessionUser.userId
+            },
+            sortOrder : {_id:1}
         };
 
-        var validationUserObject = await Service.findData(validationUser, tableName);
+        criteria['limit'] = requestObject.limit ?requestObject.limit : 0;
+        criteria['skip'] = requestObject.page ? Number(( requestObject.page==0 ?requestObject.page=1:1 - 1) * Number(requestObject.limit ?requestObject.limit :10)) :0;
+
+
+        var validationUserObject = await Service.findData(criteria, tableName);
         if(validationUserObject.length)
         {
 
@@ -373,8 +419,78 @@ exports.updateContact = async function (req, res) {
             requestObject.phoneNumber ? updateUserObject['phoneNumber'] = requestObject.phoneNumber :''
 
 
-            var updateUser = await Service.updateData(validationUser,updateUserObject, tableName);
+            var updateCondition = {
+                ID : requestObject.ID,
+                loggedInUser : sessionUser.userId
+            };
+
+            var updateUser = await Service.updateData(updateCondition,updateUserObject, tableName);
             return res.status(200).json({status: 200,  message: "User updated successfully"});
+        }else{
+            return res.status(200).json({status: 200,  message: "Contact Detail not available"});
+
+        }
+
+
+         } catch (e) {
+        errorObject['message'] = e.message;
+        return res.status(400).json(errorObject);
+    }
+}
+exports.listContactDetails = async function (req, res) {
+
+    var errorObject = {
+        status: 400
+    };
+
+    var requestObject = req.query ;
+
+    console.log("requestObject", requestObject);
+
+    var sessionUser = req.user ? req.user : null;
+
+
+
+    var inputObjectValidation = await Util.checkObjectEmptyOrNot(requestObject);
+    if (inputObjectValidation)
+    {
+        errorObject['message'] = "User Registration Object should not be Empty";
+        return res.status(400).json(errorObject);
+    }
+
+
+    if(requestObject.page && requestObject.page == 0){
+        errorObject['message'] = "Page Number should not be Zero";
+    return res.status(400).json(errorObject);
+    }
+
+    const tableName = 'contacts';
+
+    try {
+
+
+
+
+        var criteria={
+            condition : {
+                loggedInUser : sessionUser.userId
+            },
+            sortOrder : {_id:1}
+        };
+
+        criteria['limit'] = requestObject.limit ?Number(requestObject.limit) : 0;
+        criteria['skip'] = requestObject.page ? Number((  requestObject.page - 1) * Number(requestObject.limit ?requestObject.limit :10)) :0;
+
+        console.log(criteria['skip'],"criteria['skip']");
+
+
+        var validationUserObject = await Service.findData(criteria, tableName);
+        if(validationUserObject.length)
+        {
+
+
+
+            return res.status(200).json({status: 200,data:validationUserObject,  message: "User updated successfully"});
         }else{
             return res.status(200).json({status: 200,  message: "No user Available"});
 

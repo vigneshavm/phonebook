@@ -14,6 +14,8 @@ module.exports = (app) => {
 
     app.post('/updateContact',auth.isAuthorized, actionInstance.updateContact);
 
+    app.get('/listContact',auth.isAuthorized, actionInstance.listContactDetails);
+
 
 
 

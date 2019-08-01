@@ -19,10 +19,12 @@ exports.insertData = async function (insertData, table) {
 }
 
 
-exports.findData = async function (condition, table) {
+exports.findData = async function (criteria, table) {
 
-     return new Promise((resolve, reject) => {
-     var data=db[table].find(condition,{_id:0}).toArray((err, data) => {
+    console.log("criteria", criteria);
+
+    return new Promise((resolve, reject) => {
+     var data=db[table].find(criteria.condition,{_id:0}).sort(criteria.sortOrder).skip(criteria.skip).limit(criteria.limit).toArray((err, data) => {
          if(data)
              resolve(data)
          else
@@ -33,18 +35,6 @@ exports.findData = async function (condition, table) {
 
 
 
-exports.findOneData = async function (condition, table) {
-
-
-    return new Promise((resolve, reject) => {
-            var data=db[table].findOne(condition,{_id:0},(err, data) => {
-                    if(data)
-                    resolve(data)
-                    else
-                        resolve('Error on Data Finding')
-                })
-})
-}
 
 exports.updateData = async function (condition,updateData, table) {
 
