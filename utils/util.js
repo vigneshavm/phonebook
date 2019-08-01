@@ -2,11 +2,13 @@
  * Created by vignesh on 7/31/19.
  */
 
+var bcrypt = require('bcryptjs');
 
-exports.checkObjectEmptyOrNot = async function (insertData) {
+
+exports.checkObjectEmptyOrNot = async function (inputData) {
 
     try {
-        var response = await Object.entries(insertData).length === 0 && insertData.constructor === Object
+        var response = await Object.entries(inputData).length === 0 && inputData.constructor === Object
         return response;
     } catch (e) {
         // Log Errors
@@ -14,12 +16,12 @@ exports.checkObjectEmptyOrNot = async function (insertData) {
     }
 }
 
-exports.checkStringEmptyOrNot = async function (insertData) {
+exports.checkStringEmptyOrNot = async function (inputData) {
 
     try {
-        var response = await (insertData == null ||
-            insertData == undefined ||
-            insertData.length == 0)
+        var response = await (inputData == null ||
+            inputData == undefined ||
+            inputData.length == 0)
         return response;
     } catch (e) {
         // Log Errors
@@ -28,10 +30,10 @@ exports.checkStringEmptyOrNot = async function (insertData) {
 }
 
 
-exports.validationMailID =  async function (insertData) {
+exports.validationMailID =  async function (inputData) {
 
     try {
-        var response = await (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(insertData))
+        var response = await (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(inputData))
         return response;
     } catch (e) {
         // Log Errors
@@ -41,9 +43,9 @@ exports.validationMailID =  async function (insertData) {
 };
 
 
-exports.validationStringOrNumber = async function (insertData) {
+exports.validationStringOrNumber = async function (inputData) {
     try {
-        var response = await (/^[a-zA-Z]+$/.test(insertData))
+        var response = await (/^[a-zA-Z]+$/.test(inputData))
         return response;
     } catch (e) {
         // Log Errors
@@ -51,9 +53,18 @@ exports.validationStringOrNumber = async function (insertData) {
     }
 };
 
-exports.validationPhoneNuber = async function (insertData) {
+exports.validationPhoneNuber = async function (inputData) {
     try {
-        var response = await (/^\(?([0-9]{3})\)?[-. ]?([0-9]{3})[-. ]?([0-9]{4})$/.test(insertData))
+        var response = await (/^\(?([0-9]{3})\)?[-. ]?([0-9]{3})[-. ]?([0-9]{4})$/.test(inputData))
+        return response;
+    } catch (e) {
+        // Log Errors
+        throw Error('Error on Given data')
+    }
+};
+exports.hash = async function (inputData,count) {
+    try {
+        var response = await bcrypt.hash(inputData,count)
         return response;
     } catch (e) {
         // Log Errors

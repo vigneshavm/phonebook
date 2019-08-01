@@ -1,8 +1,16 @@
 /**
  * Created by vignesh on 7/31/19.
  */
+
+const bcrypt = require('bcryptjs');
+const randomstring = require('randomstring');
+const shortid = require('shortid');
+const moment = require('moment')
+console.log()
+
 const Service = require('../services/service.js');
 const Util = require('../utils/util.js');
+const Auth = require('../utils/token.js');
 
 exports.registerUser = async function (req, res) {
 
@@ -10,7 +18,7 @@ exports.registerUser = async function (req, res) {
         status: 400
     };
 
-    var requestObject = req.body ? req.body : null;
+    var requestObject = req.body;
 
 
     var inputObjectValidation = await Util.checkObjectEmptyOrNot(requestObject);
@@ -83,8 +91,22 @@ exports.registerUser = async function (req, res) {
         var responseObjectData = await Service.findData(validationMailIdAlreadyExistObject, tableName);
         if(responseObjectData.length)
             return res.status(200).json({status: 200,  message: "MailID Already Registered"});
-            
-        var users = await Service.insertData(requestObject, tableName);
+
+
+
+        var hashPassword = await Util.hash(requestObject.password,10)
+
+        const secretToken = randomstring.generate(6);
+        var insertObject = {
+            userId: shortid.generate(),
+            mailId : requestObject.mailId,
+            firstName : requestObject.firstName,
+            lastName : requestObject.lastName,
+            password :hashPassword,
+            secretToken: secretToken
+
+        }
+        var users = await Service.insertData(insertObject, tableName);
         return res.status(200).json({status: 200, data: users, message: "User Succesfully Registered"});
     } catch (e) {
         errorObject['message'] = e.message;
@@ -137,10 +159,25 @@ exports.loginUser = async function (req, res) {
         };
         var users = await Service.findData(findUser, tableName);
         if(users.length){
-            findUser['password'] = requestObject.password
-            var usersVerification = await Service.findData(requestObject, tableName);
-            if(usersVerification.length)
-                return res.status(200).json({status: 200, data: users, message: "User Login Succesfully "});
+
+            var hashPassword  = await bcrypt.compare(requestObject.password, users[0].password)
+
+            var generateToken   = await Auth.generateToken(users[0]);
+
+            console.log("generateToken", generateToken);
+
+var tokenObject ={
+            userId: users[0].userId,
+                authToken: generateToken.token,
+                tokenSecret: generateToken.tokenSecret,
+                tokenGenerationTime: moment().format()
+
+}
+
+            var insertToken   = await Service.insertData(tokenObject,'tokenAuth')
+
+            if(hashPassword)
+                return res.status(200).json({status: 200, data: {usersDetails :users[0],authToken : generateToken.token}, message: "User Login Succesfully "});
             else
                 return res.status(200).json({status: 200, message: "MailID and Password MisMatch"});
         }
@@ -154,13 +191,18 @@ exports.loginUser = async function (req, res) {
     }
 }
 
+
 exports.createContact = async function (req, res) {
 
     var errorObject = {
         status: 400
     };
 
-    var requestObject = req.body ? req.body : null;
+    var requestObject = req.body ;
+    var sessionUser = req.user ? req.user : null;
+
+
+    console.log("requestObject",requestObject)
 
 
     var inputObjectValidation = await Util.checkObjectEmptyOrNot(requestObject);
@@ -222,9 +264,18 @@ exports.createContact = async function (req, res) {
             return res.status(200).json({status: 200,  message: "phoneNumber Already In contacts List"});
 
 
+        var userNameObject ={
+            firstName : requestObject.firstName,
+            lastName : requestObject.lastName
+        };
+        var userNameValidation = await Service.findData(userNameObject, tableName);
+        if(userNameValidation.length)
+            return res.status(200).json({status: 200,  message: "User Name Already Exist"});
+
+
         var insertObject ={
-            loggedInUser  : "",
-            fullName : requestObject.firstName + " " + requestObject.lastName,
+            loggedInUser  : sessionUser.userId,
+            ID : shortid.generate(),
             firstName : requestObject.firstName,
             lastName : requestObject.lastName,
             phoneNumber : requestObject.phoneNumber
@@ -245,7 +296,11 @@ exports.updateContact = async function (req, res) {
         status: 400
     };
 
-    var requestObject = req.body ? req.body : null;
+    var requestObject = req.body ;
+
+    console.log("requestObject", requestObject);
+    var sessionUser = req.user ? req.user : null;
+
 
 
     var inputObjectValidation = await Util.checkObjectEmptyOrNot(requestObject);
@@ -255,6 +310,11 @@ exports.updateContact = async function (req, res) {
         return res.status(400).json(errorObject);
     }
 
+    var contactID = await Util.checkStringEmptyOrNot(requestObject.ID);
+    if (contactID){
+        errorObject['message'] = "ID Should not be Empty";
+        return res.status(400).json(errorObject);
+    }
 
     var firstNameValidationEmpty = await Util.checkStringEmptyOrNot(requestObject.firstName);
     if (firstNameValidationEmpty){
@@ -298,25 +358,33 @@ exports.updateContact = async function (req, res) {
 
     try {
 
-        var validationPhoneNumberAlreadyExistObject ={
-            phoneNumber : requestObject.phoneNumber
+        var validationUser ={
+            ID : requestObject.ID,
+            loggedInUser : sessionUser.userId
         };
 
-        var responseObjectData = await Service.findData(validationPhoneNumberAlreadyExistObject, tableName);
-        if(responseObjectData.length)
-            return res.status(200).json({status: 200,  message: "phoneNumber Already In contacts List"});
+        var validationUserObject = await Service.findData(validationUser, tableName);
+        if(validationUserObject.length)
+        {
+
+            var updateUserObject = { };
+            requestObject.firstName ? updateUserObject['firstName'] = requestObject.firstName :''
+            requestObject.lastName ? updateUserObject['lastName'] = requestObject.lastName :''
+            requestObject.phoneNumber ? updateUserObject['phoneNumber'] = requestObject.phoneNumber :''
 
 
-        var insertObject ={
-            loggedInUser  : "",
-            contactName : requestObject.firstName + " " + requestObject.lastName,
-            phoneNumber : requestObject.phoneNumber
-        };
+            var updateUser = await Service.updateData(validationUser,updateUserObject, tableName);
+            return res.status(200).json({status: 200,  message: "User updated successfully"});
+        }else{
+            return res.status(200).json({status: 200,  message: "No user Available"});
 
-        var users = await Service.insertData(insertObject, tableName);
-        return res.status(200).json({status: 200, data: users, message: "Contact Save Successfully"});
-    } catch (e) {
+        }
+
+
+         } catch (e) {
         errorObject['message'] = e.message;
         return res.status(400).json(errorObject);
     }
 }
+
+

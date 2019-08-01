@@ -1,18 +1,18 @@
 /**
  * Created by vignesh on 7/31/19.
  */
+
 module.exports = (app) => {
     const actionInstance = require('../actions/action.js');
+    const auth = require('./../middlewares/auth.js');
 
     app.post('/registerUser', actionInstance.registerUser);
 
     app.post('/login', actionInstance.loginUser);
 
-    app.post('/createContact', actionInstance.createContact);
+    app.post('/createContact',auth.isAuthorized, actionInstance.createContact);
 
-
-    app.put('/updateContact', actionInstance.updateContact);
-
+    app.post('/updateContact',auth.isAuthorized, actionInstance.updateContact);
 
 
 
