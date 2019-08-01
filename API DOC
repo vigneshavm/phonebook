@@ -52,8 +52,6 @@ METHOD : post
 PATH : /listContact
 I/P : {
         authToken
-        page
-        limit
+        page - (optional)
+        limit - (optional) - default - 10
       }
-validation
-     default limit : 10

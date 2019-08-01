@@ -484,7 +484,7 @@ exports.listContactDetails = async function (req, res) {
             sortOrder : {_id:1}
         };
 
-        criteria['limit'] = requestObject.limit ? Number(requestObject.limit) : 0;
+        criteria['limit'] = requestObject.limit ? Number(requestObject.limit) : 10;
 
         criteria['skip'] = requestObject.page ? Number((  requestObject.page - 1) * Number(requestObject.limit ?requestObject.limit :0)) :0;
 
