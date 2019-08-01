@@ -51,3 +51,13 @@ exports.validationStringOrNumber = async function (insertData) {
     }
 };
 
+exports.validationPhoneNuber = async function (insertData) {
+    try {
+        var response = await (/^\(?([0-9]{3})\)?[-. ]?([0-9]{3})[-. ]?([0-9]{4})$/.test(insertData))
+        return response;
+    } catch (e) {
+        // Log Errors
+        throw Error('Error on Given data')
+    }
+};
+

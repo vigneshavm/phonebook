@@ -8,5 +8,13 @@ module.exports = (app) => {
 
     app.post('/login', actionInstance.loginUser);
 
+    app.post('/createContact', actionInstance.createContact);
+
+
+    app.put('/updateContact', actionInstance.updateContact);
+
+
+
+
 
 }
