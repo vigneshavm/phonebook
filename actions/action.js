@@ -87,7 +87,7 @@ exports.registerUser = async function (req, res) {
             sortOrder : {_id:1}
         };
         criteria['limit'] = requestObject.limit ?Number(requestObject.limit) : 0;
-        criteria['skip'] = requestObject.page ? Number(( requestObject.page==0 ?requestObject.page=1:1 - 1) * Number(requestObject.limit ?requestObject.limit :10)) :0;
+        criteria['skip'] = requestObject.page ? Number(( requestObject.page==0 ?requestObject.page=1:1 - 1) * Number(requestObject.limit ?requestObject.limit :0)) :0;
 
 
 
@@ -165,7 +165,7 @@ exports.loginUser = async function (req, res) {
         };
 
         criteria['limit'] = requestObject.limit ?Number(requestObject.limit) : 0;
-        criteria['skip'] = requestObject.page ? Number(( requestObject.page==0 ?requestObject.page=1:1 - 1) * Number(requestObject.limit ?requestObject.limit :10)) :0;
+        criteria['skip'] = requestObject.page ? Number(( requestObject.page==0 ?requestObject.page=1:1 - 1) * Number(requestObject.limit ?requestObject.limit :0)) :0;
 
 
 
@@ -272,13 +272,15 @@ exports.createContact = async function (req, res) {
 
 
         var criteria={
-            condition : {phoneNumber : requestObject.phoneNumber},
+            condition : {
+                phoneNumber : requestObject.phoneNumber,
+                loggedInUser : sessionUser.userId
+            },
             sortOrder : {_id:1}
         };
 
         criteria['limit'] = requestObject.limit ?Number(requestObject.limit) : 0;
-        criteria['skip'] = requestObject.page ? Number(( requestObject.page==0 ?requestObject.page=1:1 - 1) * Number(requestObject.limit ?requestObject.limit :10)) :0;
-
+        criteria['skip'] = requestObject.page ? Number(( requestObject.page==0 ?requestObject.page=1:1 - 1) * Number(requestObject.limit ?requestObject.limit :0)) :0;
 
 
 
@@ -288,19 +290,17 @@ exports.createContact = async function (req, res) {
 
 
 
-
         var userCriteria={
             condition : {
                 firstName : requestObject.firstName,
-                lastName : requestObject.lastName
+                lastName : requestObject.lastName,
+                loggedInUser : sessionUser.userId
             },
             sortOrder : {_id:1}
         };
 
         userCriteria['limit'] = requestObject.limit ?Number(requestObject.limit) : 0;
-        userCriteria['skip'] = requestObject.page ? Number(( requestObject.page==0 ?requestObject.page=1:1 - 1) * Number(requestObject.limit ?requestObject.limit :10)) :0;
-
-
+        userCriteria['skip'] = requestObject.page ? Number(( requestObject.page==0 ?requestObject.page=1:1 - 1) * Number(requestObject.limit ?requestObject.limit :0)) :0;
 
 
         var userNameValidation = await Service.findData(userCriteria, tableName);
@@ -350,6 +350,8 @@ exports.updateContact = async function (req, res) {
         return res.status(400).json(errorObject);
     }
 
+
+    if(requestObject.firstName) {
     var firstNameValidationEmpty = await Util.checkStringEmptyOrNot(requestObject.firstName);
     if (firstNameValidationEmpty){
         errorObject['message'] = "First Name Should not be Empty";
@@ -361,31 +363,39 @@ exports.updateContact = async function (req, res) {
         errorObject['message'] = "First Name Should not be Number";
         return res.status(400).json(errorObject);
     }
-
-    var lastNameValidationEmpty = await Util.checkStringEmptyOrNot(requestObject.lastName);
-    if (lastNameValidationEmpty){
-        errorObject['message'] = "Last Name Should not be Empty";
-        return res.status(400).json(errorObject);
     }
 
+    if(requestObject.lastName) {
+        var lastNameValidationEmpty = await
+        Util.checkStringEmptyOrNot(requestObject.lastName);
+        if (lastNameValidationEmpty) {
+            errorObject['message'] = "Last Name Should not be Empty";
+            return res.status(400).json(errorObject);
+        }
 
-    var lastNameValidationString  = await Util.validationStringOrNumber(requestObject.lastName);
-    if (!lastNameValidationString){
-        errorObject['message'] = "Last Name Should not be Number";
-        return res.status(400).json(errorObject);
+
+        var lastNameValidationString = await
+        Util.validationStringOrNumber(requestObject.lastName);
+        if (!lastNameValidationString) {
+            errorObject['message'] = "Last Name Should not be Number";
+            return res.status(400).json(errorObject);
+        }
     }
 
+    if(requestObject.phoneNumber) {
+        var phoneNumberValidationString = await
+        Util.checkStringEmptyOrNot(requestObject.phoneNumber);
+        if (phoneNumberValidationString) {
+            errorObject['message'] = "phoneNumber Should not be empty";
+            return res.status(400).json(errorObject);
+        }
 
-    var phoneNumberValidationString = await Util.checkStringEmptyOrNot(requestObject.phoneNumber);
-    if (phoneNumberValidationString) {
-        errorObject['message'] = "phoneNumber Should not be empty";
-        return res.status(400).json(errorObject);
-    }
-
-    var phoneNumberValidationLength= await Util.validationPhoneNuber(requestObject.phoneNumber);
-    if (!phoneNumberValidationLength) {
-        errorObject['message'] = "Invalid PhoneNumber";
-        return res.status(400).json(errorObject);
+        var phoneNumberValidationLength = await
+        Util.validationPhoneNuber(requestObject.phoneNumber);
+        if (!phoneNumberValidationLength) {
+            errorObject['message'] = "Invalid PhoneNumber";
+            return res.status(400).json(errorObject);
+        }
     }
 
     const tableName = 'contacts';
@@ -403,7 +413,7 @@ exports.updateContact = async function (req, res) {
         };
 
         criteria['limit'] = requestObject.limit ?Number(requestObject.limit) : 0;
-        criteria['skip'] = requestObject.page ? Number(( requestObject.page==0 ?requestObject.page=1:1 - 1) * Number(requestObject.limit ?requestObject.limit :10)) :0;
+        criteria['skip'] = requestObject.page ? Number(( requestObject.page==0 ?requestObject.page=1:1 - 1) * Number(requestObject.limit ?requestObject.limit :0)) :0;
 
 
         var validationUserObject = await Service.findData(criteria, tableName);
@@ -474,9 +484,9 @@ exports.listContactDetails = async function (req, res) {
             sortOrder : {_id:1}
         };
 
-        criteria['limit'] = requestObject.limit ?Number(requestObject.limit) : 0;
+        criteria['limit'] = requestObject.limit ? Number(requestObject.limit) : 0;
 
-        criteria['skip'] = requestObject.page ? Number((  requestObject.page - 1) * Number(requestObject.limit ?requestObject.limit :10)) :0;
+        criteria['skip'] = requestObject.page ? Number((  requestObject.page - 1) * Number(requestObject.limit ?requestObject.limit :0)) :0;
 
 
 

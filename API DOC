@@ -1,0 +1,59 @@
+
+1. Register user
+METHOD : post
+PATH : /registerUser
+I/P : {
+        mailId  - @ format (validation)
+        firstName - only string
+        lastName - only string
+        password - validation - at least one number, one lowercase and one uppercase letter ,at least six characters
+      }
+
+2. login user
+METHOD : post
+PATH : /login
+I/P : {
+        mailId  - @ format (validation)
+        password - validation - at least one number, one lowercase and one uppercase letter ,at least six characters
+      }
+
+3. Create contact under loggedIn User
+METHOD : post
+PATH : /createContact
+I/P : {
+        authToken
+        firstName - only string (mandatory)
+        lastName - only string (mandatory)
+        phoneNumber - validation - 10 digits (mandatory)
+      }
+
+validation
+     under loggedIn User-  Avoided duplication phoneNumber
+     under loggedIn User-  Avoided duplication firstName and last name
+
+
+4. Update contact with ID under loggedIn User
+METHOD : post
+PATH : /updateContact
+I/P : {
+        authToken
+        ID
+        firstName - only string (optional)
+        lastName - only string (optional)
+        phoneNumber - validation - 10 digits (optional)
+      }
+validation
+     under loggedIn User-  Avoided duplication phoneNumber
+     under loggedIn User-  Avoided duplication firstName and last name
+
+
+5. Get all contacts
+METHOD : post
+PATH : /listContact
+I/P : {
+        authToken
+        page
+        limit
+      }
+validation
+     default limit : 10
