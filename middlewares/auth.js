@@ -26,15 +26,12 @@ exports.isAuthorized = async function (req, res, next) {
 
 
         var getToken = await Service.findData(criteria,"tokenAuth");
-        console.log("getToken", typeof getToken);
         if ( getToken.length) {
 
-            console.log("getToken", getToken);
 
             var tokenObject = getToken[0];
 
             var verifyToken = await jwt.verify(tokenObject.authToken,tokenObject.tokenSecret);
-            console.log("verifyToken", verifyToken);
             errorObject['message'] = verifyToken;
 
             req.user = {userId: verifyToken.data.userId}

@@ -2,7 +2,7 @@
  * Created by vignesh on 7/31/19.
  */
 
-var bcrypt = require('bcryptjs');
+const bcrypt = require('bcryptjs');
 
 
 exports.checkObjectEmptyOrNot = async function (inputData) {

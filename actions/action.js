@@ -6,7 +6,6 @@ const bcrypt = require('bcryptjs');
 const randomstring = require('randomstring');
 const shortid = require('shortid');
 const moment = require('moment')
-console.log()
 
 const Service = require('../services/service.js');
 const Util = require('../utils/util.js');
@@ -87,7 +86,7 @@ exports.registerUser = async function (req, res) {
             condition : {mailId : requestObject.mailId},
             sortOrder : {_id:1}
         };
-        criteria['limit'] = requestObject.limit ?requestObject.limit : 0;
+        criteria['limit'] = requestObject.limit ?Number(requestObject.limit) : 0;
         criteria['skip'] = requestObject.page ? Number(( requestObject.page==0 ?requestObject.page=1:1 - 1) * Number(requestObject.limit ?requestObject.limit :10)) :0;
 
 
@@ -165,7 +164,7 @@ exports.loginUser = async function (req, res) {
             sortOrder : {_id:1}
         };
 
-        criteria['limit'] = requestObject.limit ?requestObject.limit : 0;
+        criteria['limit'] = requestObject.limit ?Number(requestObject.limit) : 0;
         criteria['skip'] = requestObject.page ? Number(( requestObject.page==0 ?requestObject.page=1:1 - 1) * Number(requestObject.limit ?requestObject.limit :10)) :0;
 
 
@@ -219,7 +218,6 @@ exports.createContact = async function (req, res) {
     var sessionUser = req.user ? req.user : null;
 
 
-    console.log("requestObject",requestObject)
 
 
     var inputObjectValidation = await Util.checkObjectEmptyOrNot(requestObject);
@@ -278,7 +276,7 @@ exports.createContact = async function (req, res) {
             sortOrder : {_id:1}
         };
 
-        criteria['limit'] = requestObject.limit ?requestObject.limit : 0;
+        criteria['limit'] = requestObject.limit ?Number(requestObject.limit) : 0;
         criteria['skip'] = requestObject.page ? Number(( requestObject.page==0 ?requestObject.page=1:1 - 1) * Number(requestObject.limit ?requestObject.limit :10)) :0;
 
 
@@ -299,7 +297,7 @@ exports.createContact = async function (req, res) {
             sortOrder : {_id:1}
         };
 
-        userCriteria['limit'] = requestObject.limit ?requestObject.limit : 0;
+        userCriteria['limit'] = requestObject.limit ?Number(requestObject.limit) : 0;
         userCriteria['skip'] = requestObject.page ? Number(( requestObject.page==0 ?requestObject.page=1:1 - 1) * Number(requestObject.limit ?requestObject.limit :10)) :0;
 
 
@@ -335,7 +333,6 @@ exports.updateContact = async function (req, res) {
 
     var requestObject = req.body ;
 
-    console.log("requestObject", requestObject);
     var sessionUser = req.user ? req.user : null;
 
 
@@ -405,7 +402,7 @@ exports.updateContact = async function (req, res) {
             sortOrder : {_id:1}
         };
 
-        criteria['limit'] = requestObject.limit ?requestObject.limit : 0;
+        criteria['limit'] = requestObject.limit ?Number(requestObject.limit) : 0;
         criteria['skip'] = requestObject.page ? Number(( requestObject.page==0 ?requestObject.page=1:1 - 1) * Number(requestObject.limit ?requestObject.limit :10)) :0;
 
 
@@ -445,7 +442,6 @@ exports.listContactDetails = async function (req, res) {
 
     var requestObject = req.query ;
 
-    console.log("requestObject", requestObject);
 
     var sessionUser = req.user ? req.user : null;
 
@@ -479,9 +475,9 @@ exports.listContactDetails = async function (req, res) {
         };
 
         criteria['limit'] = requestObject.limit ?Number(requestObject.limit) : 0;
+
         criteria['skip'] = requestObject.page ? Number((  requestObject.page - 1) * Number(requestObject.limit ?requestObject.limit :10)) :0;
 
-        console.log(criteria['skip'],"criteria['skip']");
 
 
         var validationUserObject = await Service.findData(criteria, tableName);

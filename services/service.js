@@ -1,7 +1,7 @@
 /**
  * Created by vignesh on 7/31/19.
  */
-var mongojs = require('mongojs');
+const mongojs = require('mongojs');
 
 // Configuring the database
 const dbConfig = require('../config/config');
@@ -21,7 +21,6 @@ exports.insertData = async function (insertData, table) {
 
 exports.findData = async function (criteria, table) {
 
-    console.log("criteria", criteria);
 
     return new Promise((resolve, reject) => {
      var data=db[table].find(criteria.condition,{_id:0}).sort(criteria.sortOrder).skip(criteria.skip).limit(criteria.limit).toArray((err, data) => {

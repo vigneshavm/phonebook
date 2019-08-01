@@ -1,5 +1,5 @@
 /**
- * Created by root on 8/1/19.
+ * Created by vignesh on 8/1/19.
  */
 
 const jwt = require('jsonwebtoken');
